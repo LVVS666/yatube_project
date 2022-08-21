@@ -1,21 +1,28 @@
-
-from django.shortcuts import render
-from django.http import HttpResponse
 # Create your views here.
 # ice_cream/views.py
+from django.shortcuts import render, get_object_or_404
+from .models import Post, Group
 
+POSTS_LIMIT = 10
 
 
 # Главная страница
 def index(request):
-    return HttpResponse('Главная страница')
+    posts = Post.objects.order_by("-pub_date")[:POSTS_LIMIT]
+    context = {
+        "posts": posts,
+    }
+    return render(request, "post/index.html", context)
 
 
-# Страница со списком постов
-def groups_posts(request):
-    return HttpResponse('Список постов')
-
-#Пост про мотоцикл
-def post_detail(request, pk):
-    return HttpResponse(f'CB400 Super Four Vtec2 {pk}') 
-
+# Посты отфильтрованные по группам
+def group_posts(request, slug):
+    group = get_object_or_404(Group, slug=slug)
+    posts = Post.objects.filter(group=group).order_by("-pub_date")[
+        :POSTS_LIMIT
+    ]
+    context = {
+        "group": group,
+        "posts": posts,
+    }
+    return render(request, "post/group_list.html", context)
