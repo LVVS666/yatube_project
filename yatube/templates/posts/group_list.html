@@ -1,8 +1,12 @@
 {% extends "base.html"%}
 {% block title %}{{group.title}}{%endblock%}
 {% block main %}
+<div class="container">
+  <h1>Лев Толстой – зеркало русской революции.</h1>
+  <p>
+    Группа тайных поклонников графа.
+  </p>
 {% for post in posts %}
-{{group.title}}
           <ul>
             <li>
               Автор: {{ post.author.get_full_name }}

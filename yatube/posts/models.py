@@ -7,7 +7,7 @@ User = get_user_model()
 
 class Group(models.Model):
     # Модель групп
-    title = models.CharField(max_length=20)
+    title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=50, unique=True)
     description = models.TextField()
 
