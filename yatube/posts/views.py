@@ -1,12 +1,10 @@
-# Create your views here.
-# ice_cream/views.py
-from django.shortcuts import render, get_object_or_404
-from .models import Post, Group
+from django.shortcuts import get_object_or_404, render
+
+from .models import Group, Post
 
 POSTS_LIMIT = 10
 
 
-# Главная страница
 def index(request):
     posts = Post.objects.order_by("-pub_date")[:POSTS_LIMIT]
     context = {
@@ -15,12 +13,11 @@ def index(request):
     return render(request, "posts/index.html", context)
 
 
-# Посты отфильтрованные по группам
 def group_posts(request, slug):
 
     group = get_object_or_404(Group, slug=slug)
 
-    posts = Post.objects.filter(group=group).order_by("-pub_date")[:10]
+    posts = group.posts.all()[:10]
     context = {
         "group": group,
         "posts": posts,

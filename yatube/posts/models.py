@@ -1,12 +1,10 @@
-# Create your models here.
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
 
 class Group(models.Model):
-    # Модель групп
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=50, unique=True)
     description = models.TextField()
@@ -29,6 +27,11 @@ class Post(models.Model):
         Group,
         blank=True,
         null=True,
-        on_delete=models.CASCADE,
-        related_name="groups",
+        on_delete=models.SET_NULL,
+        related_name="posts",
     )
+
+    class Meta:
+        ordering = ['-pub_date']
+        verbose_name = "Пост"
+        verbose_name_plural = "Посты"
