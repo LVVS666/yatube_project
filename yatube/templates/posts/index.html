@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="ru">
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
   Последние обновления на сайте
 {% endblock %}
 {% block main %}
-
-  <div class="container py-5">     
+  <div class="container py-5">
     <h1>
-		Последние обновления на сайте
+	  Последние обновления на сайте
 	</h1>
-      <article>
-        {% for post in posts %}
+	  <article>
+	    {% for post in page_obj %}
 		  <ul>
 		    <li>
 			  Автор: {{ post.author.get_full_name }}
@@ -21,18 +18,20 @@
 			  Дата публикации: {{ post.pub_date|date:"d E Y" }}
 			</li>
 		  </ul>
-		  <p>{{ post.text|safe }}</p>    
-		  {% if post.group %}   
-		    <a href="{% url 'posts:group_list' post.group.slug %}">
-				Группа: {{ post.group.title }}
-			</a>
-		  {% endif %} 
-		  {% if not forloop.last %}
-		    <hr>
-		  {% endif %}
-		  {% endfor %}
-      </article>
-    </div>  
-
+		    <p>
+			  {{ post.text|safe|linebreaksbr }}
+		    </p>
+		      {% if post.group %}
+		        <a href="{% url 'posts:group_list' post.group.slug %}">
+                  Группа: {{ post.group.title }}
+		        </a>
+		          {% endif %} 
+		            {% if not forloop.last %}
+		              <hr>
+		            {% endif %}
+		 {% endfor %}
+		   {% include 'includes/paginator.html' %}
+	  </article>
+  </div>
 {% endblock %}
-</html>
+

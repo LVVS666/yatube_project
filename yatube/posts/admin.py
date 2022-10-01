@@ -1,8 +1,8 @@
 from django.contrib import admin
-from django.conf import settings
 
 from .models import Group, Post
 
+EMPTY_VALUE_DISPLAY = "-пусто-"
 
 
 class GroupAdmin(admin.ModelAdmin):

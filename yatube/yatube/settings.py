@@ -25,12 +25,20 @@ SECRET_KEY = "+&2#(gx4#fk3)qvdc2isr541ajb=$r=meg&1xr!ki@eciv+ogw"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    'testserver',
+]
 
-
+PAGE_LIMIT = 15
 # Application definition
 
 INSTALLED_APPS = [
+    "about.apps.AboutConfig",
+    "core.apps.CoreConfig",
+    "users.apps.UsersConfig",
     "posts.apps.PostsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -63,6 +71,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "core.context_processors.year.year",
             ],
         },
     },
@@ -100,11 +109,20 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = "users:login"
+LOGIN_REDIRECT_URL = "posts:index"
+PASSWORD_CHANGE_URL = "users:password_change"
+
+POST_LIMIT = 10
+
+
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ru"
 
 TIME_ZONE = "UTC"
 
