@@ -1,4 +1,5 @@
 {% load user_filters %}
+{% load thumbnail %}
 {% block main %}
   <div class="container py-5">
     <div class="row justify-content-center">
@@ -25,7 +26,7 @@
               </div>
             {% endfor %}
           {% endif %}
-          <form method="post">
+          <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group row my-3 p-3">
               {% for field in form %}

@@ -1,6 +1,6 @@
+from django.conf import settings as st
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.conf import settings as st
 
 User = get_user_model()
 
@@ -19,7 +19,7 @@ class Group(models.Model):
 
 
 class Post(models.Model):
-    text = models.TextField("Текст")
+    text = models.TextField("Текст", help_text="Введите текст поста")
     pub_date = models.DateTimeField("Дата", auto_now_add=True)
     author = models.ForeignKey(
         User,
@@ -34,6 +34,12 @@ class Post(models.Model):
         on_delete=models.SET_NULL,
         related_name="posts",
         verbose_name="Группы",
+        help_text="Группа, к которой будет относиться пост",
+    )
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True,
     )
 
     class Meta:
