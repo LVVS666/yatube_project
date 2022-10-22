@@ -35,6 +35,7 @@
           <a href="{% url 'posts:post_edit' post.id %}">Редактировать пост</a>
         {% endif %}
       </p>
+          {% include 'includes/add_comments.html' %}
     </article>
   </div>
 {% endblock %}

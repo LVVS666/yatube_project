@@ -24,7 +24,7 @@ SECRET_KEY = "+&2#(gx4#fk3)qvdc2isr541ajb=$r=meg&1xr!ki@eciv+ogw"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+EMPTY_VALUE_DISPLAY = "-пусто-"
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
@@ -34,7 +34,11 @@ ALLOWED_HOSTS = [
 
 PAGE_LIMIT = 15
 # Application definition
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
 INSTALLED_APPS = [
     "about.apps.AboutConfig",
     "core.apps.CoreConfig",

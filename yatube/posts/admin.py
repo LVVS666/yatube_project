@@ -1,13 +1,12 @@
 from django.contrib import admin
 
 from .models import Group, Post
-
-EMPTY_VALUE_DISPLAY = "-пусто-"
+from django.conf import settings as st
 
 
 class GroupAdmin(admin.ModelAdmin):
     list_display = ("pk", "title", "slug", "description")
-    empty_value_display = EMPTY_VALUE_DISPLAY
+    empty_value_display = st.EMPTY_VALUE_DISPLAY
 
 
 class PostAdmin(admin.ModelAdmin):
@@ -15,7 +14,7 @@ class PostAdmin(admin.ModelAdmin):
     list_editable = ("group",)
     search_fields = ("text",)
     list_filter = ("pub_date",)
-    empty_value_display = EMPTY_VALUE_DISPLAY
+    empty_value_display = st.EMPTY_VALUE_DISPLAY
 
 
 admin.site.register(Post, PostAdmin)

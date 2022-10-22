@@ -23,6 +23,19 @@ class PostURLTests(TestCase):
             group=cls.group,
         )
         cls.not_author = User.objects.create_user(username="NotAuthor")
+        cls.url_context = {
+            "/": HTTPStatus.OK,
+            "/note": HTTPStatus.NOT_FOUND,
+            f"/group/{cls.group.slug}/": HTTPStatus.OK,
+            f"/profile/{cls.user}/": HTTPStatus.OK,
+            f"/posts/{cls.post.id}": HTTPStatus.MOVED_PERMANENTLY,
+            f"/posts/{cls.post.id}/edit/": HTTPStatus.OK,
+            "/create": HTTPStatus.MOVED_PERMANENTLY,
+            "/follow/": HTTPStatus.OK,
+            f"/posts/{cls.post.id}/comment/": HTTPStatus.FOUND,
+            f"/profile/{cls.user}/follow/": HTTPStatus.FOUND,
+            f"/profile/{cls.user}/unfollow/": HTTPStatus.FOUND,
+        }
 
     def setUp(self):
         self.guest_client = Client()
@@ -34,46 +47,28 @@ class PostURLTests(TestCase):
         self.authorized_client_but_not_author.force_login(self.not_author)
 
     def test_url_guest(self):
-        # Проверка неавторизованного пользователя на доступ к страницам
-        url_context = {
-            "/": HTTPStatus.OK,
-            "/note": HTTPStatus.NOT_FOUND,
-            f"/group/{self.group.slug}/": HTTPStatus.OK,
-            f"/profile/{self.user}/": HTTPStatus.OK,
-            f"/posts/{self.post.id}": HTTPStatus.MOVED_PERMANENTLY,
-            f"/posts/{self.post.id}/edit/": HTTPStatus.FOUND,
-            "/create": HTTPStatus.MOVED_PERMANENTLY,
-        }
-        for url, status_code in url_context.items():
+        self.url_context[f"/posts/{self.post.id}/edit/"] = HTTPStatus.FOUND
+        self.url_context["/follow/"] = HTTPStatus.FOUND
+        self.url_context[f"/profile/{self.user}/follow/"] = HTTPStatus.FOUND
+        self.url_context[f"/profile/{self.user}/unfollow/"] = HTTPStatus.FOUND
+        for url, status_code in self.url_context.items():
             with self.subTest(url=url):
                 response = self.guest_client.get(url)
                 self.assertEqual(response.status_code, status_code)
 
     def test_url_authorized(self):
-        # Проверка авторизованного пользователя
-        url_context = {
-            "/": HTTPStatus.OK,
-            "/note": HTTPStatus.NOT_FOUND,
-            f"/group/{self.group.slug}/": HTTPStatus.OK,
-            f"/profile/{self.user}/": HTTPStatus.OK,
-            f"/posts/{self.post.id}": HTTPStatus.MOVED_PERMANENTLY,
-            f"/posts/{self.post.id}/edit/": HTTPStatus.OK,
-            "/create": HTTPStatus.MOVED_PERMANENTLY,
-        }
-        for url, status_code in url_context.items():
+        for url, status_code in self.url_context.items():
             with self.subTest(url=url):
                 response = self.authorized_client.get(url)
                 self.assertEqual(response.status_code, status_code)
 
     def test_post_edit_url_redirect_not_author(self):
-        # Перенаправление
         response = self.authorized_client_but_not_author.get(
             f"/posts/{self.post.id}/edit/", follow=True
         )
         self.assertRedirects(response, f"/posts/{self.post.id}/")
 
     def test_urls_uses_correct_template(self):
-        # Проверка шаблонов
         templates_url_names = {
             "/": "posts/index.html",
             f"/group/{self.group.slug}/": "posts/group_list.html",

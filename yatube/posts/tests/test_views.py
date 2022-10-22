@@ -2,8 +2,9 @@ from django.conf import settings as st
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.core.cache import cache
 from django import forms
-from posts.models import Group, Post
+from posts.models import Group, Post, Follow
 from posts.forms import PostForm
 
 User = get_user_model()
@@ -22,12 +23,73 @@ class PostPagesTests(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             group=cls.group,
-            text="Test post group",
+            text="Test post",
         )
+        cls.new_author = User.objects.create(username="new_author")
 
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+
+    def Equal_test_context(self, first_context, second_context):
+        self.assertEqual(first_context.author, second_context.author)
+        self.assertEqual(first_context.text, second_context.text)
+        self.assertEqual(first_context.group, second_context.group)
+
+    def test_follow(self):
+        count_follow = Follow.objects.count()
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.new_author})
+        )
+        follow = Follow.objects.last()
+        self.assertEqual(Follow.objects.count(), count_follow + 1)
+        self.assertEqual(follow.author, self.new_author)
+        self.assertEqual(follow.user, self.user)
+
+    def test_unfollow(self):
+        count_follow = Follow.objects.count()
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.new_author}
+            )
+        )
+        self.assertEqual(Follow.objects.count(), count_follow + 1)
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_unfollow',
+                kwargs={'username': self.new_author}
+            )
+        )
+        self.assertEqual(Follow.objects.count(), count_follow)
+
+    def test_following_posts(self):
+        new_user = User.objects.create(username='leo')
+        authorized_client = Client()
+        authorized_client.force_login(new_user)
+        authorized_client.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.user.username})
+        )
+        response_follow = authorized_client.get(reverse('posts:follow_index'))
+        if 'page_obj' not in response_follow.context:
+            post = response_follow.context['post']
+        else:
+            self.assertEqual(len(response_follow.context['page_obj']), 1)
+            post = response_follow.context['page_obj'][0]
+        self.assertEqual(post.text, self.post.text)
+        self.assertEqual(post.author, self.post.author)
+        self.assertEqual(post.id, self.post.id)
+
+    def test_unfollowing_posts(self):
+        response_unfollow = self.authorized_client.get(
+            reverse('posts:follow_index')
+        )
+        context_unfollow = response_unfollow.context
+        self.assertEqual(len(context_unfollow['page_obj']), 0)
 
     def check_post_info(self, post):
         self.assertEqual(post.text, self.post.text)
@@ -37,9 +99,7 @@ class PostPagesTests(TestCase):
     def test_index_pages_show_correct_context(self):
         response = self.authorized_client.get(reverse("posts:index"))
         post = response.context["page_obj"][0]
-        self.assertEqual(post.author, self.post.author)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.group, self.post.group)
+        self.Equal_test_context(post, self.post)
         self.assertEqual(post.pub_date, self.post.pub_date)
 
     def test_values_group_context_first(self):
@@ -47,9 +107,7 @@ class PostPagesTests(TestCase):
             reverse("posts:group_list", kwargs={"slug": self.group.slug})
         )
         post = response.context["page_obj"][0]
-        self.assertEqual(post.author, self.post.author)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.group, self.post.group)
+        self.Equal_test_context(post, self.post)
         self.assertEqual(post.pub_date, self.post.pub_date)
         self.assertIsInstance(response.context["group"], Group)
 
@@ -58,9 +116,7 @@ class PostPagesTests(TestCase):
             reverse("posts:profile", kwargs={"username": self.user})
         )
         post = response.context["page_obj"][0]
-        self.assertEqual(post.author, self.post.author)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.group, self.post.group)
+        self.Equal_test_context(post, self.post)
         self.assertEqual(post.pub_date, self.post.pub_date)
         self.assertIsInstance(response.context["author"], User)
 
@@ -70,9 +126,7 @@ class PostPagesTests(TestCase):
         )
         self.assertIn("post", response.context)
         post = response.context["post"]
-        self.assertEqual(post.author, self.post.author)
-        self.assertEqual(post.text, self.post.text)
-        self.assertEqual(post.group, self.post.group)
+        self.Equal_test_context(post, self.post)
         self.assertEqual(post.pub_date, self.post.pub_date)
 
     def test_post_create_page_show_correct_context(self,):
@@ -102,16 +156,26 @@ class PostPagesTests(TestCase):
         self.assertIsInstance(response.context.get("form"), PostForm)
 
 
-class PaginatorViewsTest(PostPagesTests):
+class PaginatorViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.user = User.objects.create(username="test_author")
+        cls.group = Group.objects.create(
+            title="Test group",
+            slug="test_group",
+            description="Test group",
+        )
         for i in range(st.POST_LIMIT):
             cls.post = Post.objects.create(
                 author=cls.user,
                 text=f"Тest post {i}",
                 group=cls.group,
             )
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
 
     def test_first_page_ten_posts(self):
         posts_on_page = (
@@ -142,7 +206,9 @@ class PaginatorViewsTest(PostPagesTests):
         )
         for response in posts_on_page:
             with self.subTest(response=response):
-                self.assertEqual(len(response.context["page_obj"]), 1)
+                self.assertEqual(len(response.context["page_obj"]),
+                                 st.POST_LIMIT
+                                 )
 
 
 class PostPageViewsTest(PostPagesTests):
@@ -177,3 +243,39 @@ class PostPageViewsTest(PostPagesTests):
         self.assertIn(self.post, group, "Ошибка - поста нет в группе")
         self.assertIn(self.post, profile, "Ошибка - поста нет в профайле")
         self.assertNotIn(self.post, not_group, "Ошибка - пост есть в группе")
+
+
+class TestCache(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create(username="test_author")
+        cls.group = Group.objects.create(
+            title="Test group",
+            slug="test_group",
+            description="Test group",
+        )
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
+
+    def test_index_page_cashe(self):
+        posts = Post.objects.all()
+        posts.delete()
+        cache.clear()
+        new_post = Post.objects.create(
+            text='text_test_post_cache.',
+            author=self.user,
+            group=self.group
+        )
+        post_count = Post.objects.count()
+        response = self.authorized_client.get(reverse('posts:index'))
+        cached_response_content = response.content
+        new_post.delete()
+        response = self.authorized_client.get(reverse('posts:index'))
+        self.assertEqual(Post.objects.count(), post_count - 1)
+        self.assertEqual(cached_response_content, response.content)
+        cache.clear()
+        response_two = self.authorized_client.get('posts:index')
+        self.assertNotEqual(cached_response_content, response_two.content)
