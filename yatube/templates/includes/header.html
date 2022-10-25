@@ -25,7 +25,7 @@
         </li>
         {% if request.user.is_authenticated %}
         <li class="nav-item"> 
-          <a class="nav-link link-light" href="{%url "posts:post_create"%}">Новая запись</a>
+          <a class="nav-link link-light" href="{%url 'posts:post_create'%}">Новая запись</a>
         </li>
         <li class="nav-item"> 
           <a class="nav-link link-light" href="{% url 'users:password_change'%}">Изменить пароль</a>
@@ -41,7 +41,7 @@
           <a class="nav-link link-light" href="{% url 'users:login'%}">Войти</a>
         </li>
         <li class="nav-item"> 
-          <a class="nav-link link-light" href="users:signup">Регистрация</a>
+          <a class="nav-link link-light" href="{%url 'users:signup'%}">Регистрация</a>
         </li>
         {% endif %}
       </ul>

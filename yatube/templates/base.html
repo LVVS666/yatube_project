@@ -16,11 +16,13 @@
 
   <body>
     {% include 'includes/header.html' %}
+    <div class="container py-5">
     <main>
       {% block main %}
         Ошибка вышла
       {% endblock %}
     </main>
+  </div>
   </body>
   {% include 'includes/footer.html' %}
 

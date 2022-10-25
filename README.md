@@ -1,3 +1,22 @@
-# backend_community_homework
+# Учебный проект Яндекс.Практикум 
+## Yatube :collision:
+____
 
-[![CI](https://github.com/yandex-praktikum/hw03_forms/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw03_forms/actions/workflows/python-app.yml)
+**Описание проекта**
+
+:exclamation:
+
+Yatube - эксперемениально-социальная сеть для блоггеров:thumbsup:, с возможностью выкладывать статьи с фотографиями, подписываться на других авторов :love_letter: и комментировать чужие статьи.:speech_balloon:
+
+____
+
+**Технологии**
+
+Django 2-26
+
+Python 3.7.0
+
+____
+**Проект залитый на хостинг**
+
+http://lvvs666.pythonanywhere.com/
